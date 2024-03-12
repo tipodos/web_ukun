@@ -1,3 +1,5 @@
+*.blade.php text=auto eol=crlf
+
 * text=auto eol=lf
 
 *.blade.php diff=html

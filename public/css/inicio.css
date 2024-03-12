@@ -1,0 +1,29 @@
+body{
+    background: white;
+}
+
+nav{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    padding-left: 5%;
+    padding-right: 5%;
+    font-weight: bold;
+    font-size: 25px;
+}
+h1{
+    color: #1D0F0F;
+    font-size: 45px;
+}
+ul li{
+    display: inline-block;
+    padding: 0px 20px;
+}
+a{
+    color: #1D0F0F;
+    text-decoration: none;
+}
+a:hover{
+    color: #7B7C81;
+}
