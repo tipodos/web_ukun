@@ -16,13 +16,11 @@ class routeController extends Controller
         $productos=Producto::all();
         return view('tienda', compact('productos'));
      }
-    public function detalle(Request $request, $id){
-        
-        $id=$request->input('id');
-        $producto=Producto::find($id);
-        $imgProducto=ImgProducto::where('producto_id', $id)->get();
+    public function detalle(Request $request,$id){
+        $productos=Producto::find($id);
+        $imgProducto=ImgProducto::where('producto_id', $id);
         return view('detail', [
-            'producto' => $producto,
+            'productos' => $productos,
             'imgProducto' => $imgProducto
         ]);        
  }
@@ -32,7 +30,5 @@ class routeController extends Controller
     public function checkout(){
     return view('checkout');
 }
-    public function cart(){
-    return view('cart');
-}
+    
 }

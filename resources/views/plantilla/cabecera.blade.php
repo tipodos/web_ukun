@@ -76,9 +76,9 @@
                         <i class="fas fa-heart text-primary"></i>
                         <span class="badge">0</span>
                     </a>
-                    <a href="" class="btn border">
+                    <a href="{{route('cart')}}" class="btn border">
                         <i class="fas fa-shopping-cart text-primary"></i>
-                        <span class="badge">0</span>
+                        <span class="badge">{{\Cart::count()}}</span>
                     </a>
                 </div>
             </div>
@@ -128,15 +128,22 @@
                                 <div class="nav-item dropdown">
                                     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">pago</a>
                                     <div class="dropdown-menu rounded-0 m-0">
-                                        <a href="{{route('cart')}}" class="dropdown-item">Carrito de compra</a>
+                                        <a href="" class="dropdown-item">Carrito de compra</a>
                                         <a href="{{route('checkout')}}" class="dropdown-item">Metodo de pago</a>
                                     </div>
                                 </div>
                                 <a href="{{route('contacto')}}" class="nav-item nav-link">Contacto</a>
                             </div>
-                            <div class="navbar-nav ml-auto py-0">
-                                <a href="" class="nav-item nav-link">inicio de session</a>
-                                <a href="" class="nav-item nav-link">Registrar</a>
+                            <div class="sm:fixed sm:top-0 sm:right-0 p-6 text-right z-10">
+                                @auth
+                                    <a href="{{ url('/dashboard') }}" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Dashboard</a>
+                                @else
+                                    <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">inicio de sesio</a>
+            
+                                    @if (Route::has('register'))
+                                        <a href="{{ route('register') }}" class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Registrar</a>
+                                    @endif
+                                @endauth
                             </div>
                         </div>
                     </nav>

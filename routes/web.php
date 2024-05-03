@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\routeController;
@@ -24,7 +25,8 @@ Route::get('/dashboard', function () {
 Route::get('/tienda', [routeController::class, 'tienda'])->name('tienda');
 Route::get('/detalle/{id}', [routeController::class,'detalle'])->name('detalle');
 Route::get('/contacto', [routeController::class,'contacto'])->name('contacto');
-Route::get('/cart', [routeController::class,'cart'])->name('cart');
+Route::post('/cart/add/{id}', [CartController::class, 'addToCart'])->name('add');
+Route::get('/cart/cart', [CartController::class, 'cart'])->name('cart');
 Route::get('/checkout', [routeController::class,'checkout'])->name('checkout');
 
 Route::middleware('auth')->group(function () {
@@ -35,3 +37,7 @@ Route::middleware('auth')->group(function () {
 
 
 require __DIR__.'/auth.php';
+
+//Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

@@ -18,7 +18,7 @@
 
 
     <!-- Shop Detail Start -->
-    <h1>{{$producto}}</h1>
+    <h1>{{$productos}}</h1>
     <div class="container-fluid py-5">
         <div class="row px-xl-5">
             <div class="col-lg-5 pb-5">
