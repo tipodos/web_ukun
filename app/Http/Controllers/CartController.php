@@ -12,9 +12,9 @@ class CartController extends Controller
 
         Cart::add(
             $producto->id,
-            $producto->name,
+            $producto->nombre,
             1,
-            $producto->price,
+            $producto->precio,
             ["image"=>$producto->image]
 
         );
@@ -24,6 +24,12 @@ class CartController extends Controller
     public function cart(){
         return view('cart.cart');
     }
+    public function remover(Request $request){
+        
+        Cart::remove($request->rowId);
+        return redirect()->back()->with("success","Producto eliminado");
+    }
+
 
 }
 

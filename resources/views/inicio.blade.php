@@ -243,7 +243,10 @@
                     </div>
                     <div class="card-footer d-flex justify-content-between bg-light border">
                         <a href="{{route('detalle',['id' => $producto->id])}}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>ver detalle</a>
-                        <a href="{{route('cart',['id' => $producto->id])}}" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>agregar a carrito</a>
+                        <form method="POST" action="{{ route('add', ['id' => $producto->id]) }}" class="btn btn-sm text-dark p-0">
+                            @csrf <!-- Agrega el campo de token CSRF para protección -->
+                            <button type="submit" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Enviar a carrito</button>
+                        </form>
                     </div>
                 </div>
             </div>

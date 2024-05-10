@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\routeController;
 use Illuminate\Support\Facades\Route;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Auth;
+
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,16 +21,48 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [routeController::class,'inicio'])->name('inicio');
+Route::get('/tienda', [routeController::class,'tienda'])->name('tienda');
+Route::get('/contactos', [routeController::class,'contacto'])->name('contacto');
+Route::get('/checkout', [routeController::class,'checkout'])->name('checkout');
+Route::post('/detalle/{id}', [routeController::class,'detalle'])->name('detalle');
+
+Route::post('/carrito/add', [CartController::class,'addToCart'])->name('add');
+Route::get('/carrito', [CartController::class,'cart'])->name('cart');
+Route::post('/carrito/remover', [CartController::class,'remover'])->name('remover');
+
+
+
+
+
+
+
+Route::get('/google-auth/redirect', function () {
+    return Socialite::driver('google')->redirect();
+});
+ 
+/*Route::get('/google-auth/callback', function () {
+    $user_google = Socialite::driver('google')->stateless()->user();
+    $user=User::updateOrCreate([
+        'google_id' =>$user_google->id,
+    ],
+    [
+        'name'=>$user_google->name,
+        'email'=>$user_google->email,
+    ]);
+ 
+    // $user->token
+    Auth::login($user);
+    return redirect('/dashboard');
+});*/
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return view('admin.template');
 })->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/tienda', [routeController::class, 'tienda'])->name('tienda');
-Route::get('/detalle/{id}', [routeController::class,'detalle'])->name('detalle');
-Route::get('/contacto', [routeController::class,'contacto'])->name('contacto');
-Route::post('/cart/add/{id}', [CartController::class, 'addToCart'])->name('add');
-Route::get('/cart/cart', [CartController::class, 'cart'])->name('cart');
-Route::get('/checkout', [routeController::class,'checkout'])->name('checkout');
+
+Route::get('/logout', function () {
+    Auth::logout();
+    return redirect()->route('inicio');
+})->name('logout');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -35,9 +70,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-
 require __DIR__.'/auth.php';
 
 //Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
