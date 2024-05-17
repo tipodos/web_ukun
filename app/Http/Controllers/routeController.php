@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Producto;
 use App\Models\ImgProducto;
+USE App\Models\Product;
 
 
 class routeController extends Controller
@@ -14,8 +15,8 @@ class routeController extends Controller
         return view('inicio', compact('productos'));
     }
     public function tienda(){
-        $productos=Producto::all();
-        return view('tienda', compact('productos'));
+        $products=Product::all();
+        return view('tienda', compact('products'));
      }
     public function detalle(Request $request,$id){
         $productos=Producto::find($id);
