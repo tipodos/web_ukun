@@ -88,8 +88,7 @@ Route::get('/home', [\App\Http\Controllers\HomeController::class, 'index'])->nam
 Route::resource('/products', ProductController::class);
 Route::resource('/users', UserController::class);
 
-Route::post('paypal/pay', [PayPalController::class,'payWithPayPal'])->name('paypal');
+Route::get('paypal/pay', [PayPalController::class, 'payWithPayPal'])->name('paypal.pay');
 Route::get('paypal/execute', [PayPalController::class, 'executePayment'])->name('paypal.execute');
 Route::get('paypal/cancel', [PayPalController::class, 'cancelPayment'])->name('paypal.cancel');
-
 

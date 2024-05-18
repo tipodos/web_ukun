@@ -2,6 +2,7 @@
 @section('titulo', 'checkout')
 
 @section('contenido')
+<script src="https://www.paypal.com/sdk/js?client-id=TU_CLIENT_ID&currency=USD"></script>
     <div class="container-fluid bg-secondary mb-5">
         <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
             <h1 class="font-weight-semi-bold text-uppercase mb-3">Checkout</h1>
@@ -166,31 +167,39 @@
                     </div>
                 </div>
 
-                <div class="card border-secondary mb-5">
-                    <div class="card-header bg-secondary border-0">
-                        <h4 class="font-weight-semi-bold m-0">Pago</h4>
-                    </div>
-                    <div class="card-body">
-                        <form id="paymentForm" action="{{route('paypal')}}" method="post">
-                            @csrf
+                <form action="{{ route('paypal.pay') }}" method="GET">
+                    <div class="card border-secondary mb-5">
+                        <div class="card-header bg-secondary border-0">
+                            <h4 class="font-weight-semi-bold m-0">Pago</h4>
+                        </div>
+                        <div class="card-body">
                             <div class="form-group">
                                 <div class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" name="payment" id="paypal"
-                                        value="paypal" checked>
+                                    <input type="radio" class="custom-control-input" name="payment" id="paypal" checked>
                                     <label class="custom-control-label" for="paypal">Paypal</label>
                                 </div>
                             </div>
-                            <!-- Aquí puedes agregar más opciones de pago si lo deseas -->
-
-                            <!-- Botón para realizar el pedido -->
-                            <input type="submit" class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3"
-                                value="Realizar Pedido">
-                        </form>
+                        </div>
+                        <div class="card-footer border-secondary bg-transparent">
+                            <button type="submit" class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3">Realizar Pedido</button>
+                        </div>
                     </div>
-                    <div class="card-footer border-secondary bg-transparent">
-                        <!-- Puedes agregar un enlace o información adicional aquí si lo necesitas -->
-                    </div>
-                </div>
+                    <script>paypal.Buttons({
+                        createOrder: function(data, actions) {
+                            return actions.order.create({
+                                // ...
+                                purchase_units: [{
+                                    amount: {
+                                        value: 100
+                                    }
+                                }],
+                            });
+                        },
+                        onApprove: function(data, actions) {
+                            // ...
+                        }
+                    }).render('#paypal-button-container'); </script>
+                </form>
 
             </div>
         </div>

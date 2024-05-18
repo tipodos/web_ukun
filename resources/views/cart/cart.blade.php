@@ -33,18 +33,26 @@
                         <tbody class="align-middle">
                             @foreach (Cart::content() as $item)
                                 <tr data-rowid="{{ $item->rowId }}">
-                                    <td class="align-middle"><img src="img/{{ $item->options->image }}" alt=""
-                                            style="width: 50px;">{{ $item->name }}</td>
-                                    <td class="align-middle">S/{{ number_format($item->price, 2) }}</td>
                                     <td class="align-middle">
+                                        <img src="img/{{ $item->options->image }}" alt="" style="width: 50px;">
+                                        {{ $item->name }}
+                                    </td>
+                                    <td class="align-middle" data-price="{{ $item->price }}">
+                                        S/{{ number_format($item->price, 2) }}</td>
+                                    <td class="align-middle">
+                                        <button class="btn-minus">-</button>
                                         <div class="input-group quantity mx-auto" style="width: 100px;">
-                                            <input type="text"
+                                            <input type="text" name="qty"
                                                 class="form-control form-control-sm bg-secondary text-center"
                                                 value="{{ $item->qty }}">
                                         </div>
+                                        <button class="btn-plus">+</button>
+
                                     </td>
 
-                                    <td class="align-middle">S/{{ number_format($item->price * $item->qty, 2) }}</td>
+                                    <td class="align-middle show-subtotal">
+                                        S/{{ number_format($item->price * $item->qty, 2) }}
+                                    </td>
                                     <td>
                                         <form action="{{ route('remover') }}" method="POST">
                                             @csrf
@@ -73,13 +81,13 @@
                         </div>
                         <div class="d-flex justify-content-between">
                             <h6 class="font-weight-medium">inpuestos</h6>
-                            <h6 class="font-weight-medium">S/{{ Cart::tax() }}</h6>
+                            <h6 class="font-weight-medium" id="impuestos">S/{{ Cart::tax() }}</h6>
                         </div>
                     </div>
                     <div class="card-footer border-secondary bg-transparent">
                         <div class="d-flex justify-content-between mt-2">
                             <h5 class="font-weight-bold">Total</h5>
-                            <h5 class="font-weight-bold">S/{{ Cart::Total() }}</h5>
+                            <h5 class="font-weight-bold" id="total">S/{{ Cart::Total() }}</h5>
                         </div>
 
                         <form action="checkout" method="POST">
@@ -203,14 +211,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const quantityInputs = document.querySelectorAll('.quantity input[type="text"]');
-    
+
             quantityInputs.forEach(input => {
                 input.addEventListener('input', function(event) {
                     const row = this.closest('tr');
                     let quantity = parseInt(this.value);
-                    const price = parseFloat(row.querySelector('.align-middle:nth-child(2)').textContent.replace('S/', '').replace(',', ''));
+                    const price = parseFloat(row.querySelector('.align-middle:nth-child(2)')
+                        .textContent.replace('S/', '').replace(',', ''));
                     const totalPriceElement = row.querySelector('.align-middle:nth-child(4)');
-    
+
                     if (!isNaN(quantity) && quantity >= 1) {
                         const newTotal = quantity * price;
                         totalPriceElement.textContent = 'S/' + newTotal.toFixed(2);
@@ -222,47 +231,74 @@
             });
         });
     </script>
-    
-    <script>
-        $(document).ready(function() {
-            $('.btn-minus, .btn-plus').click(function() {
-                var rowId = $(this).closest('tr').find('input[name="rowId"]').val();
-                var qty = $(this).closest('tr').find('input[name="qty"]').val();
 
-                $.ajax({
-                    url: "{{ route('actualizarCantidad') }}",
-                    method: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnMinusList = document.querySelectorAll('.btn-minus');
+            const btnPlusList = document.querySelectorAll('.btn-plus');
+
+            // Función para manejar la lógica de disminuir la cantidad
+            function handleMinusClick(e) {
+                const row = e.target.closest('tr');
+                const input = row.querySelector('input[name="qty"]');
+                if (Number(input.value) === 1) {
+                    return;
+                }
+                const unitPrice = parseFloat(row.querySelector('td[data-price]').getAttribute('data-price'));
+                const rowId = row.getAttribute('data-rowid');
+                input.value = Number(input.value) - 1;
+                updateQuantity(rowId, input.value, unitPrice, row);
+            }
+
+            // Función para manejar la lógica de aumentar la cantidad
+            function handlePlusClick(e) {
+                const row = e.target.closest('tr');
+                const input = row.querySelector('input[name="qty"]');
+                const unitPrice = parseFloat(row.querySelector('td[data-price]').getAttribute('data-price'));
+                const rowId = row.getAttribute('data-rowid');
+                input.value = Number(input.value) + 1;
+                updateQuantity(rowId, input.value, unitPrice, row);
+            }
+
+            // Función para actualizar la cantidad y los totales
+            function updateQuantity(rowId, qty, unitPrice, row) {
+                fetch("{{ route('actualizarCantidad') }}", {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': "{{ csrf_token() }}"
+                    },
+                    method: 'post',
+                    body: JSON.stringify({
                         rowId: rowId,
                         qty: qty
-                    },
-                    success: function(response) {
-                        $('#subtotal').text('S/' + response.subTotal);
-                        $('#impuestos').text('S/' + response.impuestos);
-                        $('#total').text('S/' + response.total);
-                    }
-                });
+                    })
+                }).then((r) => r.json()).then(data => {
+                    row.querySelector('.show-subtotal').textContent = 'S/' + (unitPrice * qty).toFixed(2);
+                    document.getElementById('subtotal').textContent = 'S/' + data.subTotal;
+                    document.getElementById('impuestos').textContent = 'S/' + data.impuestos;
+                    document.getElementById('total').textContent = 'S/' + data.total;
+                }).catch(error => console.error('Error:', error));
+            }
+
+            // Agregar event listeners a todos los botones de menos
+            btnMinusList.forEach(btnMinus => {
+                btnMinus.addEventListener('click', handleMinusClick);
             });
 
-            // Manually handle input changes to update the cart
-            $('input[name="qty"]').change(function() {
-                var rowId = $(this).closest('tr').find('input[name="rowId"]').val();
-                var qty = $(this).val();
+            // Agregar event listeners a todos los botones de más
+            btnPlusList.forEach(btnPlus => {
+                btnPlus.addEventListener('click', handlePlusClick);
+            });
 
-                $.ajax({
-                    url: "{{ route('actualizarCantidad') }}",
-                    method: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        rowId: rowId,
-                        qty: qty
-                    },
-                    success: function(response) {
-                        $('#subtotal').text('S/' + response.subTotal);
-                        $('#impuestos').text('S/' + response.impuestos);
-                        $('#total').text('S/' + response.total);
-                    }
+            // Event listener para cambios manuales en la cantidad
+            const inputsQty = document.querySelectorAll('input[name="qty"]');
+            inputsQty.forEach(function(input) {
+                input.addEventListener('change', function() {
+                    const row = input.closest('tr');
+                    const unitPrice = parseFloat(row.querySelector('td[data-price]').getAttribute(
+                        'data-price'));
+                    const rowId = row.getAttribute('data-rowid');
+                    updateQuantity(rowId, input.value, unitPrice, row);
                 });
             });
         });
