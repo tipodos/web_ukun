@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -76,19 +78,22 @@ require __DIR__.'/auth.php';
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-
 Auth::routes();
 
-Route::get('/home', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-Auth::routes();
-
-Route::get('/home', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::resource('/products', ProductController::class);
 Route::resource('/users', UserController::class);
+Route::resource('/orders', OrderController::class);
 
-Route::get('paypal/pay', [PayPalController::class, 'payWithPayPal'])->name('paypal.pay');
-Route::get('paypal/execute', [PayPalController::class, 'executePayment'])->name('paypal.execute');
-Route::get('paypal/cancel', [PayPalController::class, 'cancelPayment'])->name('paypal.cancel');
+//Route::post('/paypal', [CheckoutController::class, 'paypal'])->name('paypal');
+//Route::get('/paypal-success', [CheckoutController::class, 'success'])->name('success');
+//Route::get('/paypal-cancel', [CheckoutController::class, 'cancel'])->name('cancel');
+
+//Route::get('/checkout', [PayPalController::class, 'showCheckoutForm'])->name('checkout');
+Route::middleware('auth')->group(function () {
+    Route::post('/paypal/create-order', [PayPalController::class, 'createOrder'])->name('paypal.createOrder');
+    Route::match(['get', 'post'], '/paypal/success', [PayPalController::class, 'paymentSuccess'])->name('paypal.success');
+    Route::get('/paypal/cancel', [PayPalController::class, 'paymentCancel'])->name('paypal.cancel');
+});
+
 

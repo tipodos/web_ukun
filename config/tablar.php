@@ -151,56 +151,19 @@ return [
         ],
         [
             'text' => 'usuarios',
-            'icon' => 'ti ti-home',
+            'icon' => 'ti ti-user',
             'url' => 'users'
         ],
         [
             'text' => 'Productos',
-            'icon' => 'ti ti-home',
+            'icon' => 'ti ti-shopping-cart',
             'url' => 'products'
         ],
-
         [
-            'text' => 'Support 1',
-            'url' => 'suport',
-            'icon' => 'ti ti-help',
-            'active' => ['support1'],
-            'submenu' => [
-                [
-                    'text' => 'Ticket',
-                    'url' => 'support1',
-                    'icon' => 'ti ti-article',
-                ]
-            ],
-        ],
-
-        [
-            'text' => 'Support 2',
-            'url' => '#',
-            'icon' => 'ti ti-help',
-            'active' => ['support2'],
-            'submenu' => [
-                [
-                    'text' => 'Ticket',
-                    'url' => 'support2',
-                    'icon' => 'ti ti-article',
-                ]
-            ],
-        ],
-
-        [
-            'text' => 'Support 3',
-            'url' => '#',
-            'icon' => 'ti ti-help',
-            'active' => ['support3'],
-            'submenu' => [
-                [
-                    'text' => 'Ticket',
-                    'url' => 'support3',
-                    'icon' => 'ti ti-article',
-                ]
-            ],
-        ],
+            'text' => 'Pedidos',
+            'icon' => 'ti ti-notepad',
+            'url' => 'orders'
+        ]
 
     ],
 

@@ -2,131 +2,119 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\OrderDetail;
 use Illuminate\Http\Request;
-use PayPal\Api\Payer;
-use PayPal\Api\Item;
-use PayPal\Api\ItemList;
-use PayPal\Api\Details;
-use PayPal\Api\Amount;
-use PayPal\Api\Transaction;
-use PayPal\Api\RedirectUrls;
-use PayPal\Api\Payment;
-use PayPal\Api\PaymentExecution;
-use PayPal\Rest\ApiContext;
-use PayPal\Auth\OAuthTokenCredential;
+use PayPalCheckoutSdk\Core\PayPalHttpClient;
+use PayPalCheckoutSdk\Core\SandboxEnvironment;
+use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
+use Gloudemans\Shoppingcart\Facades\Cart;
+use PayPalHttp\HttpException;
 
 class PayPalController extends Controller
 {
-    private function getApiContext()
-    {
-        $paypal_conf = config('services.paypal');
-        
-        
-        $apiContext = new \PayPal\Rest\ApiContext(
-            new \PayPal\Auth\OAuthTokenCredential(
-                $paypal_conf['client_id'],
-                $paypal_conf['secret']
-            )
-        );
+    private $client;
 
-        $apiContext->setConfig($paypal_conf['settings']);
-        return $apiContext;
+    public function __construct()
+    {
+        $clientId = config('paypal.sandbox.client_id');
+        $clientSecret = config('paypal.sandbox.secret');
+        $environment = new SandboxEnvironment($clientId, $clientSecret);
+        $this->client = new PayPalHttpClient($environment);
     }
+    
+    public function createOrder(Request $request)
+{
 
-    public function payWithPayPal()
-    {
-        $apiContext = $this->getApiContext();
+    $billingInfo = $request->only(['nombre', 'email', 'telefono', 'direccion', 'ciudad', 'departamento', 'postal']);
+        session()->put('billing_info', $billingInfo);
 
-        // Crear nuevo objeto Payer
-        $payer = new Payer();
-        $payer->setPaymentMethod('paypal');
+    
 
-        // Crear item
-        $item = new Item();
-        $item->setName('Item Name')
-            ->setCurrency('USD')
-            ->setQuantity(1)
-            ->setPrice(10);
+    $items = $request->input('items'); 
+    $subtotal = $request->input('subtotal'); 
+    $shippingCost = $request->input('shipping_cost'); 
+    $total = $request->input('total');
+    session()->put('items', $items);
+        session()->put('subtotal', $subtotal);
+        session()->put('shipping_cost', $shippingCost);
+        session()->put('total', $total);
 
-        $itemList = new ItemList();
-        $itemList->setItems([$item]);
+    
 
-        $details = new Details();
-        $details->setShipping(2)
-                ->setTax(1.2)
-                ->setSubtotal(10);
-
-        $amount = new Amount();
-        $amount->setCurrency('USD')
-               ->setTotal(13.2)
-               ->setDetails($details);
-
-        $transaction = new Transaction();
-        $transaction->setAmount($amount)
-                    ->setItemList($itemList)
-                    ->setDescription('Descripción del pago');
-
-        $redirectUrls = new RedirectUrls();
-        $redirectUrls->setReturnUrl(route('paypal.execute'))
-                     ->setCancelUrl(route('paypal.cancel'));
-
-        $payment = new Payment();
-        $payment->setIntent('Sale')
-                ->setPayer($payer)
-                ->setRedirectUrls($redirectUrls)
-                ->setTransactions([$transaction]);
+    $orderRequest = new OrdersCreateRequest();
+        $orderRequest->prefer('return=representation');
+        $orderRequest->body = [
+            "intent" => "CAPTURE",
+            "purchase_units" => [[
+                "amount" => [
+                    "currency_code" => "USD",
+                    "value" => $total
+                ]
+            ]],
+            "application_context" => [
+                "cancel_url" => route('paypal.cancel'),
+                "return_url" => route('paypal.success')
+            ]
+        ];
 
         try {
-            $payment->create($apiContext);
-        } catch (\PayPal\Exception\PayPalConnectionException $ex) {
-            // Manejar excepción
-            return redirect()->route('paypal.cancel');
-        }
+            $response = $this->client->execute($orderRequest);
 
-        foreach ($payment->getLinks() as $link) {
-            if ($link->getRel() == 'approval_url') {
-                $redirectUrl = $link->getHref();
-                break;
+            foreach ($response->result->links as $link) {
+                if ($link->rel == 'approve') {
+                    return redirect($link->href);
+                }
             }
-        }
-
-        if (isset($redirectUrl)) {
-            return redirect()->away($redirectUrl);
-        } else {
-            return redirect()->route('paypal.cancel');
+        } catch (HttpException $ex) {
+            return response()->json(['error' => $ex->getMessage()]);
         }
     }
+    
+    public function paymentSuccess(Request $request){
+        
 
-    public function executePayment(Request $request)
-    {
-        $apiContext = $this->getApiContext();
-
-        $paymentId = $request->paymentId;
-        $payerId = $request->PayerID;
-
-        $payment = Payment::get($paymentId, $apiContext);
-
-        $execution = new PaymentExecution();
-        $execution->setPayerId($payerId);
-
-        try {
-            $result = $payment->execute($execution, $apiContext);
-        } catch (\PayPal\Exception\PayPalConnectionException $ex) {
-            // Manejar excepción
-            return redirect()->route('paypal.cancel');
+        if (!session()->has(['billing_info', 'items', 'subtotal', 'shipping_cost', 'total'])) {
+            return redirect()->route('checkout')->with('error', 'Error al procesar la orden. Por favor, inténtalo de nuevo.');
         }
 
-        if ($result->getState() == 'approved') {
-            // Pago aprobado
-            return redirect()->route('home')->with('success', 'Pago realizado con éxito');
+        $billingInfo = session('billing_info');
+        $items = session('items');
+        $subtotal = session('subtotal');
+        $shippingCost = session('shipping_cost');
+        $total = session('total');
+
+
+    $voucher = session()->all();
+    if (!isset($voucher['billing_info']) || !isset($voucher['items']) || !isset($voucher['subtotal']) || !isset($voucher['shipping_cost']) || !isset($voucher['total'])) {
+        return redirect()->route('checkout')->with('error', 'Error al procesar la orden. Por favor, inténtalo de nuevo.');
+    }
+        $order = Order::create([
+            'nombre' => $voucher['billing_info']['nombre'],
+            'email' => $voucher['billing_info']['email'],
+            'telefono' => $voucher['billing_info']['telefono'],
+            'direccion' => $voucher['billing_info']['direccion'],
+            'ciudad' => $voucher['billing_info']['ciudad'],
+            'departamento' => $voucher['billing_info']['departamento'],
+            'postal' => $voucher['billing_info']['postal'],
+            'subtotal' => $voucher['subtotal'],
+            'shipping_cost' => $voucher['shipping_cost'],
+            'total' => $voucher['total']
+        ]);
+        foreach ($items as $item) {
+            OrderDetail::create([
+                'order_id' => $order->id,
+                'product_name' => $item['name'],
+                'price' => $item['price'],
+                'quantity' => $item['quantity']
+            ]);
         }
 
-        return redirect()->route('paypal.cancel');
+        Cart::destroy();
+        return view('paypal.success');
+    }
+    public function paymentCancel(){
+        return view('paypal.cancel');
     }
 
-    public function cancelPayment()
-    {
-        // Lógica para manejar la cancelación del pago
-        return redirect()->route('home')->with('error', 'Pago cancelado');
-    }
 }

@@ -90,7 +90,7 @@
                             <h5 class="font-weight-bold" id="total">S/{{ Cart::Total() }}</h5>
                         </div>
 
-                        <form action="checkout" method="POST">
+                        <form action="{{route('checkout')}}" method="POST">
                             @csrf
                             <!-- Campos ocultos para enviar información del carrito -->
                             <input type="hidden" name="productos" value="{{ Cart::content() }}">

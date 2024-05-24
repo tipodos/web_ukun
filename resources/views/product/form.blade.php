@@ -27,15 +27,14 @@
     </div>
 </div>
 <div class="form-group mb-3">
-    <label class="form-label">   {{ Form::label('image') }}</label>
+    <label class="form-label">{{ Form::label('image', 'Image') }}</label>
     <div>
-        {{ Form::text('image', $product->image, ['class' => 'form-control' .
-        ($errors->has('image') ? ' is-invalid' : ''), 'placeholder' => 'Image']) }}
+        {{ Form::file('image', ['class' => 'form-control' . ($errors->has('image') ? ' is-invalid' : ''), 'onchange' => 'previewImage(event)']) }}
         {!! $errors->first('image', '<div class="invalid-feedback">:message</div>') !!}
-        <small class="form-hint">product <b>image</b> instruction.</small>
+        <small class="form-hint">Product <b>image</b> instruction.</small>
+        <img id="imagePreview" src="#" alt="your image" style="display: none; max-width: 200px; margin-top: 10px;" />
     </div>
 </div>
-
     <div class="form-footer">
         <div class="text-end">
             <div class="d-flex">
@@ -44,3 +43,14 @@
             </div>
         </div>
     </div>
+    <script>
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function(){
+                var output = document.getElementById('imagePreview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>

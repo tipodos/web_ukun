@@ -16,9 +16,12 @@
         "mindscms/laravelshoppingcart": "^2.1",
         "open-admin-ext/helpers": "^1.0",
         "open-admin-org/open-admin": "^1.0",
+        "paypal/paypal-checkout-sdk": "*",
         "paypal/rest-api-sdk-php": "^1.6",
         "spatie/laravel-permission": "^6.7",
-        "takielias/tablar": "^11.7"
+        "srmklive/paypal": "~3.0",
+        "takielias/tablar": "^11.7",
+        "twilio/sdk": "^8.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

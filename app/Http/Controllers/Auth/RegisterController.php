@@ -7,6 +7,7 @@ use App\Models\User;
 use OpenAdmin\Admin\Auth\Database\Administrator; // Importa el modelo de administrador
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
@@ -33,7 +34,7 @@ class RegisterController extends Controller
         }
 
         // Aquí puedes añadir lógica adicional, como iniciar sesión automáticamente al usuario registrado
-        // Auth::login($user);
+        Auth::login($user);
 
         return redirect()->route('inicio');
     }

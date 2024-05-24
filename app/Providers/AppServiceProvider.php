@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Schema;
+
 use Illuminate\Support\ServiceProvider;
+use PayPal\Auth\OAuthTokenCredential;
+use PayPal\Rest\ApiContext;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +15,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ApiContext::class, function ($app) {
+            $paypalConfig = config('paypal');
+            $apiContext = new ApiContext(
+                new OAuthTokenCredential(
+                    $paypalConfig['sandbox']['client_id'],
+                    $paypalConfig['sandbox']['secret']
+                )
+            );
+
+            $apiContext->setConfig($paypalConfig['settings']);
+            return $apiContext;
+        });
     }
 
     /**

@@ -1,31 +1,34 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu página con PayPal</title>
-    <!-- Incluye el script del SDK de PayPal aquí -->
-    <script src="https://www.paypal.com/sdk/js?client-id={{ env('PAYPAL_CLIENT_ID') }}&currency=USD"></script>
-</head>
-<body>
-    <!-- Contenido de tu página -->
-    <h1>¡Página con PayPal!</h1>
-    <!-- Otro contenido de tu página -->
+@extends('layouts.app')
+
+@section('content')
+    <form id="paypal-form" action="{{ route('paypal.createOrder') }}" method="post">
+        @csrf
+        <input type="hidden" name="total" value="100">
+        <button type="submit">Pagar con PayPal</button>
+    </form>
+
+    <div id="paypal-button-container"></div>
+@endsection
+
+@section('scripts')
+    <script src="https://www.paypal.com/sdk/js?client-id={{ config('paypal.sandbox.client_id') }}&currency=USD"></script>
     <script>
         paypal.Buttons({
-    createOrder: function(data, actions) {
-        return actions.order.create({
-            // ...
-            purchase_units: [{
-                amount: {
-                    value: 100
-                }
-            }],
-        });
-    },
-    onApprove: function(data, actions) {
-        // ...
-    }
-}).render('#paypal-button-container'); 
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '100.00' // Aquí puedes usar la variable PHP que contiene el total a pagar
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    // Aquí puedes redirigir al usuario a una página de éxito o hacer otras acciones
+                    alert('Transaction completed by ' + details.payer.name.given_name);
+                });
+            }
+        }).render('#paypal-button-container'); // Renderiza el botón de PayPal en el contenedor especificado
     </script>
-</body>
-</html>
+@endsection
